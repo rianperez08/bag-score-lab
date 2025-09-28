@@ -12,7 +12,7 @@ export class GeminiAnalyzer {
       // Remove data URL prefix
       const base64Image = imageData.replace(/^data:image\/[a-z]+;base64,/, '');
 
-      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${this.apiKey}`, {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

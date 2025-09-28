@@ -2,7 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Camera, CameraOff, RotateCcw, Loader2 } from 'lucide-react';
+import { Camera, CameraOff, RotateCcw, Loader2, Upload } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 
 interface CameraInterfaceProps {
@@ -13,6 +13,7 @@ interface CameraInterfaceProps {
 export const CameraInterface: React.FC<CameraInterfaceProps> = ({ onCapture, isAnalyzing }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const [isActive, setIsActive] = useState(false);
   const [devices, setDevices] = useState<MediaDeviceInfo[]>([]);
@@ -104,12 +105,28 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({ onCapture, isA
     onCapture(imageData);
   };
 
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const result = e.target?.result as string;
+      onCapture(result);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const triggerFileUpload = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <Card className="p-6 bg-gradient-subtle shadow-card">
       <div className="space-y-6">
         <div className="text-center">
           <h2 className="text-2xl font-bold mb-2">Camera Setup</h2>
-          <p className="text-muted-foreground">Position your face clearly in the camera for accurate analysis</p>
+          <p className="text-muted-foreground">Position your face clearly in the camera or upload an image for accurate analysis</p>
         </div>
 
         {!isMobile && devices.length > 1 && (
@@ -151,16 +168,27 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({ onCapture, isA
           <canvas ref={canvasRef} className="hidden" />
         </div>
 
-        <div className="flex gap-3 justify-center">
+        <div className="flex gap-3 justify-center flex-wrap">
           {!isActive ? (
-            <Button 
-              onClick={startCamera}
-              className="bg-gradient-primary text-primary-foreground shadow-elegant hover:shadow-glow"
-              size="lg"
-            >
-              <Camera className="mr-2 h-5 w-5" />
-              Start Camera
-            </Button>
+            <>
+              <Button 
+                onClick={startCamera}
+                className="bg-gradient-primary text-primary-foreground shadow-elegant hover:shadow-glow"
+                size="lg"
+              >
+                <Camera className="mr-2 h-5 w-5" />
+                Start Camera
+              </Button>
+              <Button
+                onClick={triggerFileUpload}
+                disabled={isAnalyzing}
+                variant="outline"
+                size="lg"
+              >
+                <Upload className="mr-2 h-5 w-5" />
+                Upload Image
+              </Button>
+            </>
           ) : (
             <>
               <Button
@@ -193,6 +221,14 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({ onCapture, isA
             </>
           )}
         </div>
+        
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
       </div>
     </Card>
   );
