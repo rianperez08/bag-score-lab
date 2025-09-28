@@ -9,8 +9,10 @@ export class GeminiAnalyzer {
 
   async analyzeEyebags(imageData: string): Promise<EyebagAnalysis> {
     try {
-      // Remove data URL prefix
-      const base64Image = imageData.replace(/^data:image\/[a-z]+;base64,/, '');
+      // Detect mime type and remove data URL prefix
+      const mimeMatch = imageData.match(/^data:(image\/[a-zA-Z0-9.+-]+);base64,/);
+      const mimeType = mimeMatch?.[1] ?? 'image/jpeg';
+      const base64Image = imageData.replace(/^data:image\/[a-zA-Z0-9.+-]+;base64,/, '');
 
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.apiKey}`, {
         method: 'POST',
@@ -40,7 +42,7 @@ export class GeminiAnalyzer {
               },
               {
                 inline_data: {
-                  mime_type: "image/jpeg",
+                  mime_type: mimeType,
                   data: base64Image
                 }
               }
@@ -61,26 +63,42 @@ export class GeminiAnalyzer {
         throw new Error('Invalid response from Gemini API');
       }
 
-      const analysisText = result.candidates[0].content.parts[0].text;
+      const analysisText = result.candidates?.[0]?.content?.parts?.[0]?.text ?? '';
       
-      // Parse the JSON response
-      let analysis: EyebagAnalysis;
+      // Parse the JSON response (handle code fences and extra text)
+      let analysis: EyebagAnalysis | null = null;
       try {
         analysis = JSON.parse(analysisText);
-      } catch (parseError) {
-        console.error('Failed to parse Gemini response:', analysisText);
-        // Fallback analysis if parsing fails
-        analysis = {
-          darkness: 50,
-          puffiness: 50,
-          overallScore: 50,
-          severity: 'moderate',
-          recommendations: [
-            'Get adequate sleep (7-9 hours per night)',
-            'Stay hydrated by drinking plenty of water',
-            'Use a cold compress to reduce puffiness'
-          ]
-        };
+      } catch {
+        // Try stripping Markdown code fences
+        const stripped = analysisText
+          .replace(/^\s*```(?:json)?\s*/i, '')
+          .replace(/```\s*$/i, '')
+          .trim();
+        if (stripped) {
+          try { analysis = JSON.parse(stripped); } catch {}
+        }
+        // Fallback: extract first JSON object in the text
+        if (!analysis) {
+          const match = analysisText.match(/\{[\s\S]*\}/);
+          if (match) {
+            try { analysis = JSON.parse(match[0]); } catch {}
+          }
+        }
+        if (!analysis) {
+          console.error('Failed to parse Gemini response:', analysisText);
+          analysis = {
+            darkness: 50,
+            puffiness: 50,
+            overallScore: 50,
+            severity: 'moderate',
+            recommendations: [
+              'Get adequate sleep (7-9 hours per night)',
+              'Stay hydrated by drinking plenty of water',
+              'Use a cold compress to reduce puffiness'
+            ]
+          } as EyebagAnalysis;
+        }
       }
 
       // Validate and sanitize the analysis
