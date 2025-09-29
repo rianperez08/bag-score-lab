@@ -108,7 +108,7 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, capt
             </div>
             <Progress value={analysis.overallScore} className="h-4 mb-4" />
             <p className="text-muted-foreground">
-              Higher scores indicate healthier-looking eyes
+              Higher scores indicate more prominent eyebags
             </p>
           </div>
         </div>

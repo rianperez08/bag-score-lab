@@ -27,7 +27,7 @@ export class GeminiAnalyzer {
                 {
                   "darkness": number (0-100, where 0 is no darkness and 100 is very dark),
                   "puffiness": number (0-100, where 0 is no puffiness and 100 is very puffy),
-                  "overallScore": number (0-100, where 100 is perfect and 0 is severe eyebags),
+                  "overallScore": number (0-100, where 0 is no eyebags and 100 is severe eyebags),
                   "severity": "minimal" | "mild" | "moderate" | "severe",
                   "recommendations": [array of 3-5 specific recommendations]
                 }
