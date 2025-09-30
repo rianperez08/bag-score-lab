@@ -148,6 +148,11 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({ onCapture, isA
         )}
 
         <div className="relative">
+          <img
+                  src="https://i.imgur.com/dWOD2QJ_d.webp?maxwidth=760&fidelity=grand"
+                  alt="Overlay Filter"
+                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/5 h-auto object-contain z-10 pointer-events-none"
+                />
           <video
             ref={videoRef}
             autoPlay
