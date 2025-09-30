@@ -3,14 +3,17 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CameraInterface } from '@/components/CameraInterface';
 import { AnalysisResults, EyebagAnalysis } from '@/components/AnalysisResults';
 import { GeminiAnalyzer } from '@/lib/gemini';
+import { OpenAIAnalyzer } from '@/lib/openai';
 import { toast } from '@/hooks/use-toast';
 import { Eye, Sparkles, Shield, Zap } from 'lucide-react';
 
 const Index = () => {
   const [apiKey, setApiKey] = useState('');
+  const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini');
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysis, setAnalysis] = useState<EyebagAnalysis | null>(null);
   const [capturedImage, setCapturedImage] = useState<string>('');
@@ -20,7 +23,7 @@ const Index = () => {
     if (!apiKey.trim()) {
       toast({
         title: "API Key Required",
-        description: "Please enter your Gemini API key to continue",
+        description: `Please enter your ${provider === 'gemini' ? 'Gemini' : 'OpenAI'} API key to continue`,
         variant: "destructive"
       });
       return;
@@ -33,8 +36,16 @@ const Index = () => {
     setCapturedImage(imageData);
 
     try {
-      const analyzer = new GeminiAnalyzer(apiKey);
-      const result = await analyzer.analyzeEyebags(imageData);
+      let result: EyebagAnalysis;
+      
+      if (provider === 'gemini') {
+        const analyzer = new GeminiAnalyzer(apiKey);
+        result = await analyzer.analyzeEyebags(imageData);
+      } else {
+        const analyzer = new OpenAIAnalyzer(apiKey);
+        result = await analyzer.analyzeEyebags(imageData);
+      }
+      
       setAnalysis(result);
       setStep('results');
       
@@ -165,17 +176,32 @@ const Index = () => {
               </div>
               <h2 className="text-2xl font-bold mb-2">Get Started</h2>
               <p className="text-muted-foreground">
-                Enter your Gemini API key to begin analyzing your eyebags
+                Choose your AI provider and enter your API key to begin analyzing your eyebags
               </p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <Label htmlFor="apiKey">Gemini API Key</Label>
+                <Label htmlFor="provider">AI Provider</Label>
+                <Select value={provider} onValueChange={(value: 'gemini' | 'openai') => setProvider(value)}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select AI provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gemini">Google Gemini</SelectItem>
+                    <SelectItem value="openai">OpenAI GPT-5</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="apiKey">
+                  {provider === 'gemini' ? 'Gemini' : 'OpenAI'} API Key
+                </Label>
                 <Input
                   id="apiKey"
                   type="password"
-                  placeholder="Enter your Gemini API key"
+                  placeholder={`Enter your ${provider === 'gemini' ? 'Gemini' : 'OpenAI'} API key`}
                   value={apiKey}
                   onChange={(e) => setApiKey(e.target.value)}
                   className="mt-1"
