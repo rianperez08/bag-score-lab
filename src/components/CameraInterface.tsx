@@ -156,7 +156,11 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({ onCapture, isA
             className={`w-full aspect-video bg-muted rounded-lg ${!isActive ? 'hidden' : ''}`}
           />
 
-          <img src="https://i.imgur.com/RNEaXfz.png" alt="Overlay Filter" class="absolute inset-0 w-full h-full object-contain z-10 pointer-events-none">
+          <img
+            src="https://i.imgur.com/RNEaXfz.png"
+            alt="Overlay Filter"
+            class="absolute inset-0 w-full h-full object-contain z-10 pointer-events-none"
+          />
           
           {!isActive && (
             <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center">
