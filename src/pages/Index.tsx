@@ -10,7 +10,6 @@ import { GeminiAnalyzer } from '@/lib/gemini';
 import { OpenAIAnalyzer } from '@/lib/openai';
 import { toast } from '@/hooks/use-toast';
 import { Eye, Sparkles, Shield, Zap } from 'lucide-react';
-
 const Index = () => {
   const [apiKey, setApiKey] = useState('');
   const [provider, setProvider] = useState<'gemini' | 'openai'>('gemini');
@@ -18,7 +17,6 @@ const Index = () => {
   const [analysis, setAnalysis] = useState<EyebagAnalysis | null>(null);
   const [capturedImage, setCapturedImage] = useState<string>('');
   const [step, setStep] = useState<'setup' | 'camera' | 'results'>('setup');
-
   const handleApiKeySubmit = () => {
     if (!apiKey.trim()) {
       toast({
@@ -30,14 +28,11 @@ const Index = () => {
     }
     setStep('camera');
   };
-
   const handleCapture = async (imageData: string) => {
     setIsAnalyzing(true);
     setCapturedImage(imageData);
-
     try {
       let result: EyebagAnalysis;
-      
       if (provider === 'gemini') {
         const analyzer = new GeminiAnalyzer(apiKey);
         result = await analyzer.analyzeEyebags(imageData);
@@ -45,13 +40,11 @@ const Index = () => {
         const analyzer = new OpenAIAnalyzer(apiKey);
         result = await analyzer.analyzeEyebags(imageData);
       }
-      
       setAnalysis(result);
       setStep('results');
-      
       toast({
         title: "Analysis Complete!",
-        description: "Your eyebag analysis is ready",
+        description: "Your eyebag analysis is ready"
       });
     } catch (error) {
       console.error('Analysis failed:', error);
@@ -64,42 +57,28 @@ const Index = () => {
       setIsAnalyzing(false);
     }
   };
-
   const resetAnalysis = () => {
     setStep('camera');
     setAnalysis(null);
     setCapturedImage('');
   };
-
   if (step === 'results' && analysis) {
-    return (
-      <div className="min-h-screen bg-gradient-subtle p-4">
+    return <div className="min-h-screen bg-gradient-subtle p-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <Button 
-              onClick={resetAnalysis}
-              variant="outline"
-              className="mb-4"
-            >
+            <Button onClick={resetAnalysis} variant="outline" className="mb-4">
               ← New Analysis
             </Button>
           </div>
           <AnalysisResults analysis={analysis} capturedImage={capturedImage} />
         </div>
-      </div>
-    );
+      </div>;
   }
-
   if (step === 'camera') {
-    return (
-      <div className="min-h-screen bg-gradient-subtle p-4">
+    return <div className="min-h-screen bg-gradient-subtle p-4">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <Button 
-              onClick={() => setStep('setup')}
-              variant="outline"
-              className="mb-4"
-            >
+            <Button onClick={() => setStep('setup')} variant="outline" className="mb-4">
               ← Back to Setup
             </Button>
             <h1 className="text-4xl font-bold mb-4 bg-gradient-primary bg-clip-text text-transparent">
@@ -111,12 +90,9 @@ const Index = () => {
           </div>
           <CameraInterface onCapture={handleCapture} isAnalyzing={isAnalyzing} />
         </div>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen bg-gradient-subtle">
+  return <div className="min-h-screen bg-gradient-subtle">
       {/* Hero Section */}
       <section className="relative py-20 px-4">
         <div className="max-w-6xl mx-auto text-center">
@@ -126,9 +102,7 @@ const Index = () => {
           </div>
           
           <h1 className="text-5xl md:text-7xl font-bold mb-6">
-            <span className="bg-gradient-primary bg-clip-text text-transparent">
-              EyeBag
-            </span>
+            <span className="bg-gradient-primary bg-clip-text text-transparent">EyeBags</span>
             <br />
             <span className="text-foreground">Analyzer</span>
           </h1>
@@ -198,21 +172,10 @@ const Index = () => {
                 <Label htmlFor="apiKey">
                   {provider === 'gemini' ? 'Gemini' : 'OpenAI'} API Key
                 </Label>
-                <Input
-                  id="apiKey"
-                  type="password"
-                  placeholder={`Enter your ${provider === 'gemini' ? 'Gemini' : 'OpenAI'} API key`}
-                  value={apiKey}
-                  onChange={(e) => setApiKey(e.target.value)}
-                  className="mt-1"
-                />
+                <Input id="apiKey" type="password" placeholder={`Enter your ${provider === 'gemini' ? 'Gemini' : 'OpenAI'} API key`} value={apiKey} onChange={e => setApiKey(e.target.value)} className="mt-1" />
               </div>
               
-              <Button 
-                onClick={handleApiKeySubmit}
-                className="w-full bg-gradient-primary text-primary-foreground shadow-elegant hover:shadow-glow"
-                size="lg"
-              >
+              <Button onClick={handleApiKeySubmit} className="w-full bg-gradient-primary text-primary-foreground shadow-elegant hover:shadow-glow" size="lg">
                 Start Analysis
               </Button>
               
@@ -223,8 +186,6 @@ const Index = () => {
           </Card>
         </div>
       </section>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
