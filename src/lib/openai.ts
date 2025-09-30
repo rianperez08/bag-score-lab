@@ -27,22 +27,71 @@ export class OpenAIAnalyzer {
               content: [
                 {
                   type: 'text',
-                  text: `Analyze this person's eyebags and under-eye area. Provide a detailed assessment in JSON format with the following structure:
-                  {
-                    "darkness": number (0-100, where 0 is no darkness and 100 is very dark),
-                    "puffiness": number (0-100, where 0 is no puffiness and 100 is very puffy),
-                    "overallScore": number (0-100, where 0 is no eyebags and 100 is severe eyebags),
-                    "severity": "minimal" | "mild" | "moderate" | "severe",
-                    "recommendations": [array of 3-5 specific recommendations]
-                  }
+                  text: `Analyze the under-eye area of the person in the provided webcam-quality image and output a detailed, objective JSON assessment.
+Calibrate results as follows:
 
-                  Focus on:
-                  - Dark circles and discoloration under the eyes
-                  - Puffiness and swelling of the under-eye area
-                  - Overall appearance and health of the eye area
-                  - Provide practical recommendations for improvement
+Image 1 (Baseline): Treat this as 0 for all metrics (no visible darkness/puffiness).
 
-                  Respond ONLY with valid JSON, no other text.`
+Image 2 (Maximum): Treat this as 100 for all metrics (extreme darkness/puffiness).
+
+Any new input image should be scaled proportionally between these two reference points.
+
+If new input appears worse than Image 2, you may allow scores to slightly exceed 100 (cap at 110).
+
+If new input appears better than Image 1, scores may go slightly below 0 (cap at -10) — but overallScore must not exceed these bounds.
+
+Respond ONLY with valid JSON following this schema:
+
+{
+  "darkness": number,
+  "puffiness": number,
+  "overallScore": number,
+  "severity": "none" | "very_minimal" | "minimal" | "very_mild" | "mild" | "moderate" | "moderately_severe" | "severe" | "very_severe" | "extreme",
+  "confidenceScore": number,
+  "lightingQuality": "poor" | "fair" | "good",
+  "observations": [string],
+  "recommendations": [string]
+}
+
+Parameter Guidelines:
+
+darkness (0–100): Compare under-eye skin tone to cheeks and forehead. Image 1 = 0, Image 2 = 100.
+
+puffiness (0–100): Rate visible swelling under eyes. Image 1 = 0, Image 2 = 100.
+
+overallScore (0–100): Average of darkness & puffiness. Image 1 = 0, Image 2 = 100.
+
+severity: Choose from 10 levels based on overallScore (0 = none, 100 = extreme).
+
+Range	Severity
+0–9	none
+10–19	very_minimal
+20–29	minimal
+30–39	very_mild
+40–49	mild
+50–59	moderate
+60–69	moderately_severe
+70–79	severe
+80–89	very_severe
+90–100	extreme
+
+confidenceScore: 0–100, rate trustworthiness of result (good lighting & clear focus = higher score).
+
+lightingQuality: "good" if evenly lit, "poor" if shadows or harsh contrast.
+
+observations: 2–4 specific notes (symmetry, visible folds, left/right difference).
+
+recommendations: 3–5 practical, evidence-based suggestions (hydration, cold compress, sleep hygiene, topical retinol, dermatologist consult).
+
+Special Instructions:
+
+Always normalize results relative to the calibration images.
+
+Force use of the full 0–100 scale whenever possible to maximize contrast between mild and severe eyebags.
+
+If multiple images are provided at once, output a JSON object per image and ensure differences are clearly reflected (at least 10-point spread between images if differences are visible).
+
+Return only valid JSON — no text outside the braces.`
                 },
                 {
                   type: 'image_url',
@@ -111,9 +160,12 @@ export class OpenAIAnalyzer {
         darkness: Math.min(100, Math.max(0, analysis.darkness || 0)),
         puffiness: Math.min(100, Math.max(0, analysis.puffiness || 0)),
         overallScore: Math.min(100, Math.max(0, analysis.overallScore || 0)),
-        severity: ['minimal', 'mild', 'moderate', 'severe'].includes(analysis.severity) 
+        severity: ['none', 'very_minimal', 'minimal', 'very_mild', 'mild', 'moderate', 'moderately_severe', 'severe', 'very_severe', 'extreme'].includes(analysis.severity) 
           ? analysis.severity 
           : 'moderate',
+        confidenceScore: analysis.confidenceScore ? Math.min(100, Math.max(0, analysis.confidenceScore)) : undefined,
+        lightingQuality: analysis.lightingQuality || undefined,
+        observations: Array.isArray(analysis.observations) ? analysis.observations : undefined,
         recommendations: Array.isArray(analysis.recommendations) 
           ? analysis.recommendations.slice(0, 6) 
           : ['Consider consulting with a healthcare professional for personalized advice']

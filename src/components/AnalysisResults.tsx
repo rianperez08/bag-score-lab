@@ -8,8 +8,11 @@ export interface EyebagAnalysis {
   darkness: number;
   puffiness: number;
   overallScore: number;
+  severity: 'none' | 'very_minimal' | 'minimal' | 'very_mild' | 'mild' | 'moderate' | 'moderately_severe' | 'severe' | 'very_severe' | 'extreme';
+  confidenceScore?: number;
+  lightingQuality?: 'poor' | 'fair' | 'good';
+  observations?: string[];
   recommendations: string[];
-  severity: 'minimal' | 'mild' | 'moderate' | 'severe';
 }
 
 interface AnalysisResultsProps {
@@ -20,20 +23,32 @@ interface AnalysisResultsProps {
 export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, capturedImage }) => {
   const getSeverityColor = (severity: string) => {
     switch (severity) {
-      case 'minimal': return 'bg-gradient-success text-success-foreground';
-      case 'mild': return 'bg-warning text-warning-foreground';
-      case 'moderate': return 'bg-accent text-accent-foreground';
-      case 'severe': return 'bg-destructive text-destructive-foreground';
+      case 'none': return 'bg-green-100 text-green-800';
+      case 'very_minimal': return 'bg-green-100 text-green-800';
+      case 'minimal': return 'bg-green-100 text-green-800';
+      case 'very_mild': return 'bg-lime-100 text-lime-800';
+      case 'mild': return 'bg-yellow-100 text-yellow-800';
+      case 'moderate': return 'bg-orange-100 text-orange-800';
+      case 'moderately_severe': return 'bg-orange-200 text-orange-900';
+      case 'severe': return 'bg-red-100 text-red-800';
+      case 'very_severe': return 'bg-red-200 text-red-900';
+      case 'extreme': return 'bg-red-300 text-red-950';
       default: return 'bg-muted text-muted-foreground';
     }
   };
 
   const getSeverityIcon = (severity: string) => {
     switch (severity) {
-      case 'minimal': return <CheckCircle className="h-4 w-4" />;
-      case 'mild': return <Zap className="h-4 w-4" />;
-      case 'moderate': return <AlertCircle className="h-4 w-4" />;
-      case 'severe': return <AlertCircle className="h-4 w-4" />;
+      case 'none': return <span className="text-sm">🌟</span>;
+      case 'very_minimal': return <span className="text-sm">😊</span>;
+      case 'minimal': return <span className="text-sm">🙂</span>;
+      case 'very_mild': return <span className="text-sm">😐</span>;
+      case 'mild': return <span className="text-sm">😕</span>;
+      case 'moderate': return <span className="text-sm">😟</span>;
+      case 'moderately_severe': return <span className="text-sm">😰</span>;
+      case 'severe': return <span className="text-sm">😱</span>;
+      case 'very_severe': return <span className="text-sm">🥺</span>;
+      case 'extreme': return <span className="text-sm">😵</span>;
       default: return <Eye className="h-4 w-4" />;
     }
   };
@@ -111,8 +126,46 @@ export const AnalysisResults: React.FC<AnalysisResultsProps> = ({ analysis, capt
               Higher scores indicate more prominent eyebags
             </p>
           </div>
+          
+          {analysis.confidenceScore && (
+            <div className="mt-4 p-3 bg-muted rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Confidence Score</span>
+                <span className="text-sm font-bold">{analysis.confidenceScore}%</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium">Lighting Quality</span>
+                <span className={`text-sm px-2 py-1 rounded ${
+                  analysis.lightingQuality === 'good' ? 'bg-green-100 text-green-800' :
+                  analysis.lightingQuality === 'fair' ? 'bg-yellow-100 text-yellow-800' :
+                  'bg-red-100 text-red-800'
+                }`}>
+                  {analysis.lightingQuality}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </Card>
+
+      {analysis.observations && analysis.observations.length > 0 && (
+        <Card className="p-6 shadow-card">
+          <div className="space-y-4">
+            <h3 className="font-semibold text-lg flex items-center gap-2">
+              <Eye className="h-5 w-5 text-primary" />
+              Observations
+            </h3>
+            <ul className="space-y-2">
+              {analysis.observations.map((observation, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <div className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-2"></div>
+                  <p className="text-sm text-muted-foreground">{observation}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </Card>
+      )}
 
       {analysis.recommendations.length > 0 && (
         <Card className="p-6 shadow-card">
