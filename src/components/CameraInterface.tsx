@@ -148,11 +148,6 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({ onCapture, isA
         )}
 
         <div className="relative">
-          <img
-                  src="https://i.imgur.com/dWOD2QJ_d.webp?maxwidth=760&fidelity=grand"
-                  alt="Overlay Filter"
-                  className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1/5 h-auto object-contain z-10 pointer-events-none"
-                />
           <video
             ref={videoRef}
             autoPlay
@@ -160,6 +155,8 @@ export const CameraInterface: React.FC<CameraInterfaceProps> = ({ onCapture, isA
             muted
             className={`w-full aspect-video bg-muted rounded-lg ${!isActive ? 'hidden' : ''}`}
           />
+
+          <img src="https://i.imgur.com/RNEaXfz.png" alt="Overlay Filter" class="absolute inset-0 w-full h-full object-contain z-10 pointer-events-none">
           
           {!isActive && (
             <div className="w-full aspect-video bg-muted rounded-lg flex items-center justify-center">
